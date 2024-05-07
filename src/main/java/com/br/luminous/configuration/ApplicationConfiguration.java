@@ -19,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 public class ApplicationConfiguration {
     private UserRepository userRepository;
 
+
     @Bean
     public AuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider provider =
