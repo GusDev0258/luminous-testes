@@ -1,4 +1,4 @@
-package com.br.luminous.service;
+package com.br.luminous.controller;
 
 import com.br.luminous.models.AuthenticationRequest;
 import com.br.luminous.models.EnergyBillRequest;
