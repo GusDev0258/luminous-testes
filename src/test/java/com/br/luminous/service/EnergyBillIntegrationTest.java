@@ -81,7 +81,7 @@ public class EnergyBillIntegrationTest {
                 .body("success", Matchers.equalTo(false))
                 .body("message", Matchers.equalTo(expectedMessage))
                 .body("data", Matchers.nullValue());
-    }
+        } 
 
     @Test
     void shouldNotCreateAEnergyBillWithInvalidBillFileId() {
@@ -146,7 +146,7 @@ public class EnergyBillIntegrationTest {
     //RT008 - Update
     @Test
     void shouldNotUpdateANotRegisteredEnergyBill() {
-        int requestId = 1;
+        int requestId = 0;
         String expectedMessage = "EnergyBill not found";
         EnergyBillRequest request = new EnergyBillRequest();
         request.setReferenceDate(LocalDate.of(2024, 04, 10));
@@ -170,4 +170,128 @@ public class EnergyBillIntegrationTest {
                 .body("message", Matchers.equalTo(expectedMessage))
                 .body("data", Matchers.nullValue());
     }
+
+    @Test
+    void shouldUpdateAEnergyBill() {
+        int requestId = 1;
+        String expectedMessage = "Energy Bill updated";
+        EnergyBillRequest request = new EnergyBillRequest();
+        request.setReferenceDate(LocalDate.of(2024, 04, 10));
+        request.setDueDate(LocalDate.of(2024, 05, 10));
+        request.setEnergyConsumptionReais(120.00);
+        request.setEnergyConsumption_kWh(240.00);
+        var response = RestAssured.given()
+                .log()
+                .all()
+                .contentType("application/json")
+                .header("Authorization", " Bearer "
+                        + this.userToken)
+                .body(request)
+                .when()
+                .put("energyBill/" + requestId)
+                .then()
+                .log().all()
+                //Assert
+                .statusCode(200)
+                .body("success", Matchers.equalTo(true))
+                .body("message", Matchers.equalTo(expectedMessage))
+                .body("data", Matchers.notNullValue())
+                .extract().response();
+        var energyConsumptionReais = response.path("data.energyConsumptionReais");
+        var energyConsumption_kWh = response.path("data.energyConsumption_kWh");
+        var referenceDate = response.path("data.referenceDate");
+        var dueDate = response.path("data.dueDate");
+        Matchers.equalTo(request.getEnergyConsumptionReais()).matches(energyConsumptionReais);
+        Matchers.equalTo(request.getEnergyConsumption_kWh()).matches(energyConsumption_kWh);
+        Matchers.equalTo(request.getReferenceDate()).matches(referenceDate);
+        Matchers.equalTo(request.getDueDate()).matches(dueDate);
+    }
+
+    //RT009 - Delete
+
+    @Test
+    void shouldNotDeleteAInvalidEnergyBill(){
+        int requestId = 0;
+        String expectedMessage = "EnergyBill not found";
+        RestAssured.given()
+                .log()
+                .all()
+                .contentType("application/json")
+                .header("Authorization", " Bearer "
+                        + this.userToken)
+                .when()
+                .delete("energyBill/" + requestId)
+                .then()
+                .log().all()
+                //Assert
+                .statusCode(404)
+                .body("success", Matchers.equalTo(false))
+                .body("message", Matchers.equalTo(expectedMessage))
+                .body("data", Matchers.nullValue());
+    }
+
+    @Test
+    void shouldDeleteAEnergyBill(){
+        int requestId = 1;
+        String expectedMessage = "EnergyBill Deleted";
+        RestAssured.given()
+                .log()
+                .all()
+                .contentType("application/json")
+                .header("Authorization", " Bearer "
+                        + this.userToken)
+                .when()
+                .delete("energyBill/" + requestId)
+                .then()
+                .log().all()
+                //Assert
+                .statusCode(200)
+                .body("success", Matchers.equalTo(true))
+                .body("message", Matchers.equalTo(expectedMessage))
+                .body("data", Matchers.nullValue());
+    }
+
+    //RT 010 - Get
+    @Test
+    void shouldGetAEnergyBill(){
+        int requestId = 1;
+        String expectedMesasge = "Energy Bill found";
+        RestAssured.given()
+                .log()
+                .all()
+                .contentType("application/json")
+                .header("Authorization", " Bearer "
+                        + this.userToken)
+                .when()
+                .get("energyBill/" + requestId)
+                .then()
+                .log().all()
+                //Assert
+                .statusCode(200)
+                .body("success", Matchers.equalTo(true))
+                .body("message", Matchers.equalTo(expectedMesasge))
+                .body("data", Matchers.notNullValue());
+    }
+
+    @Test
+    void shouldNotGetAInvalidEnergyBill(){
+        int requestId = 0;
+        String expectedMessage = "EnergyBill not found";
+        RestAssured.given()
+                .log()
+                .all()
+                .contentType("application/json")
+                .header("Authorization", " Bearer "
+                        + this.userToken)
+                .when()
+                .get("energyBill/" + requestId)
+                .then()
+                .log().all()
+                //Assert
+                .statusCode(404)
+                .body("success", Matchers.equalTo(false))
+                .body("message", Matchers.equalTo(expectedMessage))
+                .body("data", Matchers.nullValue());
+    }
+
 }

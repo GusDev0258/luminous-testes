@@ -784,4 +784,8 @@ VALUES (1001, 5.2763, 2.6381, '2023-03-31', 10),
        (1192, 9, 4.5, '2023-06-02', 12);
 
 INSERT INTO bill_file (id, url, name, size)
-VALUES (1, '/uploads/', 'fatura_energia', 40)
+VALUES (1, '/uploads/', 'fatura_energia', 40);
+
+INSERT INTO energy_bill (id,reference_date, due_date, energy_consumption_reais, energy_consumption_k_wh, address_id,
+                         bill_file_id)
+VALUES (1,'2024-04-10', '2024-05-10', 100.00, 200.00, 1, 1);

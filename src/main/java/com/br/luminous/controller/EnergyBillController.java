@@ -22,12 +22,14 @@ public class EnergyBillController {
     private EnergyBillService energyBillService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<EnergyBillResponse> getEnergyBillById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<EnergyBillResponse>> getEnergyBillById(@PathVariable Long id) {
         try {
             EnergyBillResponse energyBillResponse = energyBillService.getById(id);
-            return ResponseEntity.ok(energyBillResponse);
+            var apiResponse = new ApiResponse<EnergyBillResponse>(true, "Energy Bill found", energyBillResponse);
+            return ResponseEntity.ok(apiResponse);
         } catch (EnergyBillNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            var apiResponse = new ApiResponse<EnergyBillResponse>(false, e.getMessage(), null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiResponse);
         }
     }
 
@@ -59,7 +61,7 @@ public class EnergyBillController {
                                                                   @RequestBody EnergyBillRequest energyBillRequest) {
         try {
             EnergyBillResponse response = energyBillService.update(id, energyBillRequest);
-            ApiResponse<EnergyBillResponse> apiResponse = new ApiResponse<>(true, "Energy Bill found", response);
+            ApiResponse<EnergyBillResponse> apiResponse = new ApiResponse<>(true, "Energy Bill updated", response);
             return ResponseEntity.ok(apiResponse);
         } catch (EnergyBillNotFoundException e) {
             ApiResponse<EnergyBillResponse> apiResponse = new ApiResponse<>(false, e.getMessage(), null);
@@ -68,12 +70,14 @@ public class EnergyBillController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         try {
             energyBillService.delete(id);
-            return ResponseEntity.ok().build();
+            var apiResponse = new ApiResponse<Void>(true, "EnergyBill Deleted", null);
+            return ResponseEntity.ok().body(apiResponse);
         } catch (EnergyBillNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            var apiResponse = new ApiResponse<Void>(false, e.getMessage(), null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiResponse);
         }
     }
 }

@@ -73,7 +73,7 @@ public class EnergyBillService {
 
     public void delete(Long id) {
         try{
-               energyBillRepository.deleteById(id);
+            energyBillRepository.deleteById(id);
         }catch(Exception error){
             throw new EnergyBillNotFoundException();
         }
