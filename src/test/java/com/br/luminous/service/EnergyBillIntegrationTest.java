@@ -1,0 +1,173 @@
+package com.br.luminous.service;
+
+import com.br.luminous.models.AuthenticationRequest;
+import com.br.luminous.models.EnergyBillRequest;
+import com.br.luminous.models.UserRequest;
+import io.restassured.RestAssured;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import java.time.LocalDate;
+
+//@ExtendWith(SpringExtension.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+public class EnergyBillIntegrationTest {
+    private String userToken;
+
+    @BeforeEach()
+    void setUp() {
+        RestAssured.basePath = "/api/";
+        var registerRequest = new UserRequest();
+        registerRequest.setName("Gustavo");
+        registerRequest.setEmail("email@hotmail.com");
+        registerRequest.setPassword("123456");
+        registerRequest.setBirthdate(LocalDate.of(2001, 06, 22));
+        registerRequest.setUserName("Guguti");
+        registerRequest.setPhone("9900");
+
+        RestAssured.given()
+                .log()
+                .all()
+                .contentType("application/json")
+                .body(registerRequest)
+                .when()
+                .post("auth/register")
+                .then()
+                .statusCode(201);
+        var authRequest = new AuthenticationRequest();
+        authRequest.setPassword("123456");
+        authRequest.setEmail("email@hotmail.com");
+        this.userToken = RestAssured.given()
+                .log()
+                .all()
+                .contentType("application/json")
+                .body(authRequest)
+                .when()
+                .post("auth/authenticate")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("token");
+    }
+
+    //RT007 - Create
+    @Test
+    void shouldNotCreateAEnergyBillWithInvalidAddressId() {
+        //Arrange
+        int addressId = 0;
+        int billFileId = 1;
+        String expectedMessage = "Address not found.";
+        EnergyBillRequest request = new EnergyBillRequest();
+        request.setReferenceDate(LocalDate.of(2024, 04, 10));
+        request.setDueDate(LocalDate.of(2024, 05, 10));
+        request.setEnergyConsumptionReais(100.00);
+        request.setEnergyConsumption_kWh(200.00);
+        //Act
+        RestAssured.given()
+                .log()
+                .all()
+                .contentType("application/json")
+                .header("Authorization", " Bearer "
+                        + this.userToken)
+                .body(request)
+                .when()
+                .post("energyBill/address/" + addressId + "/billFile/" + billFileId)
+                .then()
+                .log().all()
+                //Assert
+                .statusCode(404)
+                .body("success", Matchers.equalTo(false))
+                .body("message", Matchers.equalTo(expectedMessage))
+                .body("data", Matchers.nullValue());
+    }
+
+    @Test
+    void shouldNotCreateAEnergyBillWithInvalidBillFileId() {
+        //Arrange
+        int addressId = 1;
+        int billFileId = 0;
+        String expectedMessage = "Bill File was not found";
+        EnergyBillRequest request = new EnergyBillRequest();
+        request.setReferenceDate(LocalDate.of(2024, 04, 10));
+        request.setDueDate(LocalDate.of(2024, 05, 10));
+        request.setEnergyConsumptionReais(100.00);
+        request.setEnergyConsumption_kWh(200.00);
+        //Act
+        RestAssured.given()
+                .log()
+                .all()
+                .contentType("application/json")
+                .header("Authorization", " Bearer "
+                        + this.userToken)
+                .body(request)
+                .when()
+                .post("energyBill/address/" + addressId + "/billFile/" + billFileId)
+                .then()
+                .log().all()
+                //Assert
+                .statusCode(404)
+                .body("success", Matchers.equalTo(false))
+                .body("message", Matchers.equalTo(expectedMessage))
+                .body("data", Matchers.nullValue());
+    }
+
+    @Test
+    void shouldCreateAEnergyBill() {
+        //Arrange
+        int addressId = 1;
+        int billFileId = 1;
+        int responseId = 1;
+        String expectedMessage = "Energy bill created";
+        EnergyBillRequest request = new EnergyBillRequest();
+        request.setReferenceDate(LocalDate.of(2024, 04, 10));
+        request.setDueDate(LocalDate.of(2024, 05, 10));
+        request.setEnergyConsumptionReais(100.00);
+        request.setEnergyConsumption_kWh(200.00);
+        //Act
+        RestAssured.given()
+                .log()
+                .all()
+                .contentType("application/json")
+                .header("Authorization", " Bearer "
+                        + this.userToken)
+                .body(request)
+                .when()
+                .post("energyBill/address/" + addressId + "/billFile/" + billFileId)
+                .then()
+                .log().all()
+                //Assert
+                .statusCode(201)
+                .body("success", Matchers.equalTo(true))
+                .body("message", Matchers.equalTo(expectedMessage))
+                .body("data", Matchers.equalTo(responseId));
+    }
+    //RT008 - Update
+    @Test
+    void shouldNotUpdateANotRegisteredEnergyBill() {
+        int requestId = 1;
+        String expectedMessage = "EnergyBill not found";
+        EnergyBillRequest request = new EnergyBillRequest();
+        request.setReferenceDate(LocalDate.of(2024, 04, 10));
+        request.setDueDate(LocalDate.of(2024, 05, 10));
+        request.setEnergyConsumptionReais(120.00);
+        request.setEnergyConsumption_kWh(240.00);
+        RestAssured.given()
+                .log()
+                .all()
+                .contentType("application/json")
+                .header("Authorization", " Bearer "
+                        + this.userToken)
+                .body(request)
+                .when()
+                .put("energyBill/" + requestId)
+                .then()
+                .log().all()
+                //Assert
+                .statusCode(404)
+                .body("success", Matchers.equalTo(false))
+                .body("message", Matchers.equalTo(expectedMessage))
+                .body("data", Matchers.nullValue());
+    }
+}

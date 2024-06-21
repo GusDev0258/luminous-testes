@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-class EnergyBillServiceUnitTest {
+class EnergyBillUnitTest {
 
     @Mock
     EnergyBillService energyBillService;

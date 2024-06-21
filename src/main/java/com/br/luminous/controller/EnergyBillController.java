@@ -3,6 +3,7 @@ package com.br.luminous.controller;
 import com.br.luminous.exceptions.AddressNotFoundException;
 import com.br.luminous.exceptions.BillFileNotFoundException;
 import com.br.luminous.exceptions.EnergyBillNotFoundException;
+import com.br.luminous.models.ApiResponse;
 import com.br.luminous.models.EnergyBillRequest;
 import com.br.luminous.models.EnergyBillResponse;
 import com.br.luminous.service.EnergyBillService;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @AllArgsConstructor
@@ -30,12 +32,15 @@ public class EnergyBillController {
     }
 
     @PostMapping("/address/{address_id}/billFile/{billFile_id}")
-    public ResponseEntity<Long> createEnergyBill(@PathVariable Long address_id, @PathVariable Long billFile_id, @RequestBody EnergyBillRequest energyBillRequest) {
+    public ResponseEntity<ApiResponse<Long>> createEnergyBill(@PathVariable Long address_id,
+                                                              @PathVariable Long billFile_id, @RequestBody EnergyBillRequest energyBillRequest) {
         try {
             Long id = energyBillService.create(address_id, billFile_id, energyBillRequest);
-            return ResponseEntity.status(HttpStatus.CREATED).body(id);
+            var response = new ApiResponse<Long>(true, "Energy bill created", id);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (AddressNotFoundException | BillFileNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            var response = new ApiResponse<Long>(false, e.getMessage(), null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
@@ -50,12 +55,15 @@ public class EnergyBillController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EnergyBillResponse> update(@PathVariable Long id, @RequestBody EnergyBillRequest energyBillRequest) {
+    public ResponseEntity<ApiResponse<EnergyBillResponse>> update(@PathVariable Long id,
+                                                                  @RequestBody EnergyBillRequest energyBillRequest) {
         try {
             EnergyBillResponse response = energyBillService.update(id, energyBillRequest);
-            return ResponseEntity.ok(response);
+            ApiResponse<EnergyBillResponse> apiResponse = new ApiResponse<>(true, "Energy Bill found", response);
+            return ResponseEntity.ok(apiResponse);
         } catch (EnergyBillNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            ApiResponse<EnergyBillResponse> apiResponse = new ApiResponse<>(false, e.getMessage(), null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiResponse);
         }
     }
 

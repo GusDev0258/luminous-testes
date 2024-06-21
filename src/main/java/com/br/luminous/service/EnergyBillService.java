@@ -57,7 +57,8 @@ public class EnergyBillService {
     }
     public EnergyBillResponse update(Long id, EnergyBillRequest energyBillRequest){
         try {
-            EnergyBill energyBill = energyBillRepository.findById(id).get();
+
+            EnergyBill energyBill = energyBillRepository.findById(id).orElseThrow();
             energyBill.setReferenceDate(energyBillRequest.getReferenceDate());
             energyBill.setDueDate(energyBillRequest.getDueDate());
             energyBill.setEnergyConsumptionReais(energyBillRequest.getEnergyConsumptionReais());
@@ -65,8 +66,8 @@ public class EnergyBillService {
             energyBillRepository.save(energyBill);
             var response = energyBillToResponse.mapper(energyBill);
             return response;
-        }catch(EnergyBillNotFoundException e){
-            throw e;
+        } catch (NoSuchElementException e) {
+            throw new EnergyBillNotFoundException();
         }
     }
 
