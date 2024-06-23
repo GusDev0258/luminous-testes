@@ -127,6 +127,11 @@
             <version>24.0.1</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>${selenium.version}</version>
+        </dependency>
 
     </dependencies>
 
