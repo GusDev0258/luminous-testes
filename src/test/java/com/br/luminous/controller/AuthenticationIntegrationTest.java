@@ -33,8 +33,11 @@ public class AuthenticationIntegrationTest {
         userRequest.setPassword("ct010teste");
         userRequest.setBirthdate(LocalDate.of(2000, 1, 10));
 
+        String expectedMessage = "User created";
+        Long idExpected = 1L;
+
         //Act
-        RestAssured.given()
+        var response = RestAssured.given()
                 .log()
                 .all()
                 .contentType("application/json")
@@ -44,7 +47,11 @@ public class AuthenticationIntegrationTest {
                 .then()
                 .log().all()
                 //Assert
-                .statusCode(201);
+                .statusCode(201)
+                .body("message", Matchers.equalTo(expectedMessage))
+                .extract().response();
+        var userid = response.path("data.id");
+        Matchers.equalTo(idExpected).matches(userid);
     }
 
     /*
@@ -55,11 +62,14 @@ public class AuthenticationIntegrationTest {
         // Arrange
         UserRequest userRequest = new UserRequest();
         userRequest.setName("João Silva");
-        userRequest.setEmail("joao321@hotmail.com");
+        userRequest.setEmail("email@email");
         userRequest.setPhone("988552233");
         userRequest.setUserName("joao_silva321");
         userRequest.setPassword("ct010teste");
         userRequest.setBirthdate(LocalDate.of(2000, 1, 10));
+
+        String expectedMessage = "Email already exists.";
+        String expectedReturned = "Try use another email";
 
         //Act
         RestAssured.given()
@@ -73,7 +83,7 @@ public class AuthenticationIntegrationTest {
                 .log().all()
                 //Assert
                 .statusCode(409)
-                .body("message", Matchers.equalTo("E-mail already exists."))
-                .body("returned", Matchers.equalTo("Try another e-mail"));
+                .body("message", Matchers.equalTo(expectedMessage))
+                .body("returned", Matchers.equalTo(expectedReturned));
     }
 }
