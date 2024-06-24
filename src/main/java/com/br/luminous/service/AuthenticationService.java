@@ -31,9 +31,6 @@ public class AuthenticationService {
 
     private final EmailService emailService;
 
-
-    //shouldRegisterAUserGivenAEmailAndPassword -> integração
-    //shouldCreateAUserGivenAUserRequest -> unitário a nivel modelo
     public Long register(UserRequest userRequest) {
         try {
             userService.checkEmailAlreadyExists(userRequest.getEmail());

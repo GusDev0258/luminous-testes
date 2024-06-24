@@ -1,6 +1,7 @@
 package com.br.luminous.service;
 
 import com.br.luminous.entity.User;
+import com.br.luminous.exceptions.EmailAlreadyExistsException;
 import com.br.luminous.models.UserRequest;
 import com.br.luminous.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,10 +97,26 @@ public class AuthenticationServiceUnitTest {
         duplicatedUserRequest.setPassword("ct002teste");
         duplicatedUserRequest.setBirthdate(LocalDate.of(2002, 3, 30));
 
-        var userId = authenticationService.register(firstUserRequest);
-        User userCreated = userRepository.findById(userId).orElse(null);
+        User existingUser = new User();
+        existingUser.setId(1L);
+        existingUser.setName(firstUserRequest.getName());
+        existingUser.setEmail(firstUserRequest.getEmail());
+        existingUser.setPhone(firstUserRequest.getPhone());
+        existingUser.setUserName(firstUserRequest.getUserName());
+        existingUser.setPassword(firstUserRequest.getPassword());
+        existingUser.setBirthdate(firstUserRequest.getBirthdate());
 
-        assertNull(userCreated);
+        when(userRepository.findByEmail("joao321@hotmail.com")).thenReturn(Optional.of(existingUser));
+
+        Long firstUserId = authenticationService.register(firstUserRequest);
+        Exception exception = assertThrows(EmailAlreadyExistsException.class, () -> {
+            authenticationService.register(duplicatedUserRequest);
+        });
+
+        assertEquals("Email already exists.", exception.getMessage());
+
+        verify(userRepository, times(1)).save(any(User.class));
+        verify(userRepository, times(2)).findByEmail("joao321@hotmail.com");
     }
 
     /*
@@ -115,10 +132,13 @@ public class AuthenticationServiceUnitTest {
         userRequest.setPassword("ct003teste");
         userRequest.setBirthdate(LocalDate.of(2000, 1, 10));
 
-        Long userId = authenticationService.register(userRequest);
-        User userCreated = userRepository.findById(userId).orElse(null);
+        Exception exception = assertThrows(Exception.class, () -> {
+            authenticationService.register(userRequest);
+        });
 
-        assertNull(userCreated);
+        assertEquals("Invalid name", exception.getMessage());
+
+        verify(userRepository, never()).save(any(User.class));
     }
 
     /*
@@ -128,16 +148,19 @@ public class AuthenticationServiceUnitTest {
     public void shouldNotCreateAUserGivenAnInvalidEmail() {
         UserRequest userRequest = new UserRequest();
         userRequest.setName("João da Silva");
-        userRequest.setEmail("joao_silva");
+        userRequest.setEmail("joao_silva");  // Email inválido
         userRequest.setPhone("988552233");
         userRequest.setUserName("joaosilva000");
         userRequest.setPassword("ct004teste");
         userRequest.setBirthdate(LocalDate.of(2000, 1, 10));
 
-        Long userId = authenticationService.register(userRequest);
-        User userCreated = userRepository.findById(userId).orElse(null);
+        Exception exception = assertThrows(Exception.class, () -> {
+            authenticationService.register(userRequest);
+        });
 
-        assertNull(userCreated);
+        assertEquals("Invalid email", exception.getMessage());
+
+        verify(userRepository, never()).save(any(User.class));
     }
 
     /*
@@ -149,14 +172,16 @@ public class AuthenticationServiceUnitTest {
         userRequest.setName("João da Silva");
         userRequest.setEmail("joaosilva@gmail.com");
         userRequest.setPhone("988552233");
-        userRequest.setUserName("joao silva");
+        userRequest.setUserName("joao silva");  // Username inválido (contém espaço)
         userRequest.setPassword("ct005teste");
         userRequest.setBirthdate(LocalDate.of(2000, 1, 10));
 
-        Long userId = authenticationService.register(userRequest);
-        User userCreated = userRepository.findById(userId).orElse(null);
+        Exception exception = assertThrows(Exception.class, () -> {
+            authenticationService.register(userRequest);
+        });
 
-        assertNull(userCreated);
+        assertEquals("Invalid username", exception.getMessage());
+
+        verify(userRepository, never()).save(any(User.class));
     }
-
 }
