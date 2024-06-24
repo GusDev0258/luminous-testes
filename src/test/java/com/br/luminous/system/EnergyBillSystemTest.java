@@ -49,7 +49,6 @@ public class EnergyBillSystemTest {
     @Test
     public void shouldCreateAEnergyBill() {
 
-
         List<WebElement> liList = driver.findElements(By.cssSelector("ul.default-item-list li"));
         var elementsQTD = liList.size();
 
@@ -90,8 +89,6 @@ public class EnergyBillSystemTest {
 
         WebElement btnCadastrar = driver.findElement(By.className("btn-cadastrar"));
         btnCadastrar.click();
-
-        WebElement fileInput = driver.findElement(By.name("documentBillPath"));
 
         WebElement referenceDate = driver.findElement(By.id("referenceDate"));
         referenceDate.sendKeys("2024-04-24");
