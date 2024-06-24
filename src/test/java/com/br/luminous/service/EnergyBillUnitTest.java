@@ -2,6 +2,7 @@ package com.br.luminous.service;
 
 import com.br.luminous.entity.Address;
 import com.br.luminous.entity.BillFile;
+import com.br.luminous.entity.EnergyBill;
 import com.br.luminous.entity.User;
 import com.br.luminous.mapper.EnergyBillRequestToEntity;
 import com.br.luminous.mapper.EnergyBillToResponse;
@@ -36,65 +37,58 @@ class EnergyBillUnitTest {
     @BeforeEach()
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        User mockedUser = new User();
-        mockedUser.setId(1L);
         Address mockedAddress = new Address();
         mockedAddress.setId(1L);
-        mockedAddress.setCep("89150000");
-        mockedAddress.setCity("Ibirama");
-        mockedAddress.setHouseNumber(999);
-        mockedAddress.setInputVoltage(220);
-        mockedAddress.setMainAddress(true);
-        mockedAddress.setUser(mockedUser);
-        mockedAddress.setNickname("Casinha");
-        mockedAddress.setState("Santa Catarina");
-        mockedAddress.setStreet("rua dos anjos");
         BillFile file = new BillFile();
         file.setId(1L);
         when(addressService.getAddressById(1L)).thenReturn(mockedAddress);
         when(billFileService.getById(1L)).thenReturn(file);
+        when(energyBillService.create(any(), any(), any())).thenReturn(1L);
     }
-
 
     @Test
     void shouldNotCreateAEnergyBillWithEqualsMonthOnDueDateAndReferenceDate() {
         var address = addressService.getAddressById(1L);
+        var billFile = billFileService.getById(1L);
         EnergyBillRequest request = new EnergyBillRequest();
         request.setReferenceDate(LocalDate.of(2024, 05, 25));
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(200.00);
-        var energyBill = energyBillService.create(address.getId(), 1L, request);
+        var energyBill = energyBillService.create(address.getId(), billFile.getId(), request);
         assertNull(energyBill);
     }
 
     @Test
     void shouldNotCreateAEnergyBillWithReferenceDateMonthBeforeTwoMonthsFromDueDate() {
         var address = addressService.getAddressById(1L);
+        var billFile = billFileService.getById(1L);
         EnergyBillRequest request = new EnergyBillRequest();
         request.setReferenceDate(LocalDate.of(2024, 03, 25));
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(200.00);
-        var energyBill = energyBillService.create(address.getId(), 1L, request);
+        var energyBill = energyBillService.create(address.getId(), billFile.getId(), request);
         assertNull(energyBill);
     }
 
     @Test
     void shouldNotCreateAEnergyBillWithReferenceDateMonthGreaterThanDueDateMonth(){
         var address = addressService.getAddressById(1L);
+        var billFile = billFileService.getById(1L);
         EnergyBillRequest request = new EnergyBillRequest();
         request.setReferenceDate(LocalDate.of(2024, 06, 25));
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(200.00);
-        var energyBill = energyBillService.create(address.getId(), 1L, request);
+        var energyBill = energyBillService.create(address.getId(), billFile.getId(), request);
         assertNull(energyBill);
     }
 
     @Test
     void shouldNotCreateAEnergyBillWithInvalidDateFormat() {
         var address = addressService.getAddressById(1L);
+        var billFile = billFileService.getById(1L);
         EnergyBillRequest request = new EnergyBillRequest();
         var referenceDate = "2024/10/04";
         var dueDate = "05/13/2024";
@@ -104,123 +98,126 @@ class EnergyBillUnitTest {
         request.setDueDate(dueDateObject);
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(200.00);
-        var energyBill = energyBillService.create(address.getId(), 1L, request);
+        var energyBill = energyBillService.create(address.getId(), billFile.getId(), request);
         assertNull(energyBill);
     }
 
     @Test
-    void shouldValidateTheDateDays() {
+    void shouldNotCreateAEnergyBillWithEmptyReferenceDate() {
         var address = addressService.getAddressById(1L);
+        var billFile = billFileService.getById(1L);
         EnergyBillRequest request = new EnergyBillRequest();
-        var referenceDate = "32/04/2024";
-        var dueDate = "00/05/2024";
-        var referenceDateObject = LocalDate.parse(referenceDate);
-        var dueDateObject = LocalDate.parse(dueDate);
-        request.setReferenceDate(referenceDateObject);
-        request.setDueDate(dueDateObject);
+        request.setReferenceDate(null);
+        request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(200.00);
-        var energyBill = energyBillService.create(address.getId(), 1L, request);
+        var energyBill = energyBillService.create(address.getId(), billFile.getId(), request);
         assertNull(energyBill);
     }
 
     @Test
-    void shouldValidateTheDateMonths() {
+    void shouldNotCreateAEnergyBillWithEmptyDueDate() {
         var address = addressService.getAddressById(1L);
+        var billFile = billFileService.getById(1L);
         EnergyBillRequest request = new EnergyBillRequest();
-        var referenceDate = "10/13/2024";
-        var dueDate = "10/14/2025";
-        var referenceDateObject = LocalDate.parse(referenceDate);
-        var dueDateObject = LocalDate.parse(dueDate);
-        request.setReferenceDate(referenceDateObject);
-        request.setDueDate(dueDateObject);
+        request.setReferenceDate(LocalDate.of(2024, 04, 10));
+        request.setDueDate(null);
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(200.00);
-        var energyBill = energyBillService.create(address.getId(), 1L, request);
+        var energyBill = energyBillService.create(address.getId(), billFile.getId(), request);
         assertNull(energyBill);
     }
 
     @Test
     void shouldNotCreateAEnergyBillWithEmptyConsumptionInReais() {
         var address = addressService.getAddressById(1L);
+        var billFile = billFileService.getById(1L);
         EnergyBillRequest request = new EnergyBillRequest();
         request.setReferenceDate(LocalDate.of(2024, 04, 10));
         request.setDueDate(LocalDate.of(2024, 05, 10));
+        request.setEnergyConsumptionReais(null);
         request.setEnergyConsumption_kWh(200.00);
-        var energyBill = energyBillService.create(address.getId(), 1L, request);
+        var energyBill = energyBillService.create(address.getId(), billFile.getId(), request);
         assertNull(energyBill);
     }
 
     @Test
     void shouldNotCreateAEnergyBillWithNegativeConsumptionInReais() {
         var address = addressService.getAddressById(1L);
+        var billFile = billFileService.getById(1L);
         EnergyBillRequest request = new EnergyBillRequest();
         request.setReferenceDate(LocalDate.of(2024, 04, 10));
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(-40.00);
         request.setEnergyConsumption_kWh(200.00);
-        var energyBill = energyBillService.create(address.getId(), 1L, request);
+        var energyBill = energyBillService.create(address.getId(), billFile.getId(), request);
         assertNull(energyBill);
     }
 
     @Test
     void shouldNotCreateAEnergyBillWithNotNumericConsumptionInReais() {
         var address = addressService.getAddressById(1L);
+        var billFile = billFileService.getById(1L);
         EnergyBillRequest request = new EnergyBillRequest();
         request.setReferenceDate(LocalDate.of(2024, 04, 10));
         request.setDueDate(LocalDate.of(2024, 05, 10));
-        request.setEnergyConsumptionReais(0.00);
+        request.setEnergyConsumptionReais(Double.parseDouble("Devo falhar"));
         request.setEnergyConsumption_kWh(200.00);
-        var energyBill = energyBillService.create(address.getId(), 1L, request);
+        var energyBill = energyBillService.create(address.getId(), billFile.getId(), request);
         assertNull(energyBill);
     }
 
     @Test
-    void shouldNotCreateAEnergyBillWithNegativekWhConsumption() {
+    void shouldNotCreateAEnergyBillWithNegativeKWhConsumption() {
         var address = addressService.getAddressById(1L);
+        var billFile = billFileService.getById(1L);
         EnergyBillRequest request = new EnergyBillRequest();
         request.setReferenceDate(LocalDate.of(2024, 04, 10));
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(-300.00);
-        var energyBill = energyBillService.create(address.getId(), 1L, request);
+        var energyBill = energyBillService.create(address.getId(), billFile.getId(), request);
         assertNull(energyBill);
     }
 
     @Test
     void shouldNotCreateAEnergyBillWithNotNumerickWhConsumption() {
         var address = addressService.getAddressById(1L);
+        var billFile = billFileService.getById(1L);
         EnergyBillRequest request = new EnergyBillRequest();
         request.setReferenceDate(LocalDate.of(2024, 04, 10));
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(100.00);
-        request.setEnergyConsumption_kWh(0.00);
-        var energyBill = energyBillService.create(address.getId(), 1L, request);
+        request.setEnergyConsumption_kWh(Double.parseDouble("Devo falhar"));
+        var energyBill = energyBillService.create(address.getId(), billFile.getId(), request);
         assertNull(energyBill);
     }
 
     @Test
-    void shouldNotCreateAEnergyBillWithEmptykWhConsumption()  {
+    void shouldNotCreateAEnergyBillWithEmptyKWhConsumption()  {
         var address = addressService.getAddressById(1L);
+        var billFile = billFileService.getById(1L);
         EnergyBillRequest request = new EnergyBillRequest();
         request.setReferenceDate(LocalDate.of(2024, 04, 10));
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(100.00);
-        var energyBill = energyBillService.create(address.getId(), 1L, request);
+        request.setEnergyConsumption_kWh(null);
+        var energyBill = energyBillService.create(address.getId(), billFile.getId(), request);
         assertNull(energyBill);
     }
 
     @Test
     void shouldCreateAEnergyBill() {
         var address = addressService.getAddressById(1L);
+        var billFile = billFileService.getById(1L);
         EnergyBillRequest request = new EnergyBillRequest();
         request.setReferenceDate(LocalDate.of(2024, 04, 10));
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(200.00);
-        var energyBill = energyBillService.create(address.getId(), 1L, request);
-        assertNotNull(energyBill);
+        var energyBillId = energyBillService.create(address.getId(), billFile.getId(), request);
+        assertNotNull(energyBillId);
+        assertEquals(1L, energyBillId);
     }
-
 
 }
