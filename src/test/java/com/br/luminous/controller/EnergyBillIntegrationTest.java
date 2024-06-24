@@ -19,26 +19,9 @@ public class EnergyBillIntegrationTest {
     @BeforeEach()
     void setUp() {
         RestAssured.basePath = "/api/";
-        var registerRequest = new UserRequest();
-        registerRequest.setName("Gustavo");
-        registerRequest.setEmail("email@hotmail.com");
-        registerRequest.setPassword("123456");
-        registerRequest.setBirthdate(LocalDate.of(2001, 06, 22));
-        registerRequest.setUserName("Guguti");
-        registerRequest.setPhone("9900");
-
-        RestAssured.given()
-                .log()
-                .all()
-                .contentType("application/json")
-                .body(registerRequest)
-                .when()
-                .post("auth/register")
-                .then()
-                .statusCode(201);
         var authRequest = new AuthenticationRequest();
+        authRequest.setEmail("testador@test.com");
         authRequest.setPassword("123456");
-        authRequest.setEmail("email@hotmail.com");
         this.userToken = RestAssured.given()
                 .log()
                 .all()

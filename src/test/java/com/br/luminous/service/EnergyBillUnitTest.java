@@ -2,8 +2,6 @@ package com.br.luminous.service;
 
 import com.br.luminous.entity.Address;
 import com.br.luminous.entity.BillFile;
-import com.br.luminous.entity.EnergyBill;
-import com.br.luminous.entity.User;
 import com.br.luminous.mapper.EnergyBillRequestToEntity;
 import com.br.luminous.mapper.EnergyBillToResponse;
 import com.br.luminous.models.EnergyBillRequest;

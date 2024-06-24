@@ -488,7 +488,7 @@ VALUES ('Desligue os ventiladores e ar-condicionado', 'COLD'),
 INSERT INTO users (user_id, name, phone, user_name, email, password, birthdate)
 VALUES (10, 'Testador', '123456789', 'tester', 'email@email',
         '$2a$10$xEnEKVKE2nkt.BRidai5ZOT.Qk4f93TQLAYui1gL7/2S4wJ/QddJO', '1950-12-12'),
-       (12, 'guguti', '123456789', 'guguti', 'guguti@email', '123456', '1950-12-12');
+       (12, 'Testador', '123456789', 'testador', 'testador@test.com', '$2a$10$.f4FNgQ/OD7sL56Fq2SxwOu5AJphgKfsg8fc83SPincFy2azDuieS', '1950-12-12');
 
 INSERT INTO address (id, main_address, state, city, cep, street, neighborhood, house_number, input_voltage, user_id,
                      energy_provider_id)
