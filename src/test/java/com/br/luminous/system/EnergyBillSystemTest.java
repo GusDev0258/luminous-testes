@@ -14,8 +14,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class EnergyBillSystemTest {
     private WebDriver driver;
@@ -26,10 +25,6 @@ public class EnergyBillSystemTest {
 
         driver = new FirefoxDriver();
         wait = new WebDriverWait(driver, Duration.ofSeconds(10L));
-    }
-
-    @Test
-    public void shouldCreateAEnergyBill() {
         driver.get("http://localhost:3000/login");
 
         WebElement emailInput = driver.findElement(By.name("email"));
@@ -49,6 +44,11 @@ public class EnergyBillSystemTest {
 
         WebElement bills = driver.findElement(By.className("integration-card")).findElement(By.tagName("a"));
         bills.click();
+    }
+
+    @Test
+    public void shouldCreateAEnergyBill() {
+
 
         List<WebElement> liList = driver.findElements(By.cssSelector("ul.default-item-list li"));
         var elementsQTD = liList.size();
@@ -56,7 +56,7 @@ public class EnergyBillSystemTest {
         WebElement btnCadastrar = driver.findElement(By.className("btn-cadastrar"));
         btnCadastrar.click();
 
-        String billPath = "C:\\Users\\sonho\\Downloads\\guia-ects.pdf";
+        String billPath = "C:\\Users\\sonho\\Downloads\\fatura_energia.pdf";
 
         WebElement fileInput = driver.findElement(By.name("documentBillPath"));
         fileInput.sendKeys(billPath);
@@ -83,5 +83,31 @@ public class EnergyBillSystemTest {
                 "ul.default-item-list li"), elementsQTD));
         int elementsQTDFinal = finalListItems.size();
         assertEquals(elementsQTD+1, elementsQTDFinal);
+    }
+
+    @Test
+    public void shouldNotCreateAEnergyBillWithoutABillFile() {
+
+        WebElement btnCadastrar = driver.findElement(By.className("btn-cadastrar"));
+        btnCadastrar.click();
+
+        WebElement fileInput = driver.findElement(By.name("documentBillPath"));
+
+        WebElement referenceDate = driver.findElement(By.id("referenceDate"));
+        referenceDate.sendKeys("2024-04-24");
+
+        WebElement dueDate = driver.findElement(By.id("dueDate"));
+        dueDate.sendKeys("2024-05-24");
+
+        WebElement energyConsumptionReais = driver.findElement(By.id("consumptionReais"));
+        energyConsumptionReais.sendKeys("100.00");
+
+        WebElement energyConsumption_kWh = driver.findElement(By.id("consumptionkWh"));
+        energyConsumption_kWh.sendKeys("200.00");
+
+        WebElement btnFatura = driver.findElement(By.className("btn-fatura"));
+        btnFatura.click();
+        String registeredUrl ="http://localhost:3000/energyBill/?address=1";
+        assertNotEquals(driver.getCurrentUrl(), registeredUrl);
     }
 }

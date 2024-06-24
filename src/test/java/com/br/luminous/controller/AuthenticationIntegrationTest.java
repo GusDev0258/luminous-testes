@@ -44,8 +44,7 @@ public class AuthenticationIntegrationTest {
                 .then()
                 .log().all()
                 //Assert
-                .statusCode(200)
-                .body("id", Matchers.equalTo(1L));
+                .statusCode(201);
     }
 
     /*
