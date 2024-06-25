@@ -3,8 +3,11 @@ package com.br.luminous.service;
 import com.br.luminous.entity.Address;
 import com.br.luminous.entity.EnergyProvider;
 import com.br.luminous.entity.User;
+import com.br.luminous.mapper.AddressRequestToEntity;
 import com.br.luminous.models.AddressRequest;
 import com.br.luminous.repository.AddressRepository;
+import com.br.luminous.repository.EnergyProviderRepository;
+import com.br.luminous.repository.UserRepository;
 import com.github.dockerjava.core.dockerfile.DockerfileStatement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class AddressServiceUnitTest {
 
-    @Mock
     private AddressService addressService;
 
     @Mock
@@ -28,11 +30,19 @@ public class AddressServiceUnitTest {
     private UserService userService;
 
     @Mock
+    private UserRepository userRepository;
+
+    @Mock
     private EnergyProviderService energyProviderService;
+
+    @Mock
+    private EnergyProviderRepository energyProviderRepository;
 
     @BeforeEach
     public void setup() {
         MockitoAnnotations.openMocks(this);
+
+        addressService = new AddressService(addressRepository, new AddressRequestToEntity(), userRepository, userService, energyProviderRepository);
 
         EnergyProvider mockedEnergyProvider = new EnergyProvider();
         mockedEnergyProvider.setId(1L);
@@ -41,6 +51,8 @@ public class AddressServiceUnitTest {
         User mockedUser = new User();
         mockedUser.setId(1L);
         when(userService.getUserById(1L)).thenReturn(mockedUser);
+
+        when(addressService.updateUserAddresses(mockedUser.getId(), null)).thenReturn(mockedUser);
     }
 
     /*

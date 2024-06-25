@@ -14,10 +14,12 @@ public class AuthenticationController {
     private final AuthenticationService service;
 
     @PostMapping("/register")
-    public ResponseEntity<Long> register(
+    public ResponseEntity<ApiResponse<Long>> register(
             @RequestBody UserRequest request
     ) {
-        return new ResponseEntity<Long>(service.register(request), HttpStatus.CREATED);
+        Long id = service.register(request);
+        var response = new ApiResponse<Long>(true, "User created", id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     @PostMapping("/authenticate")
     public ResponseEntity<AuthenticationResponse> authenticate(
