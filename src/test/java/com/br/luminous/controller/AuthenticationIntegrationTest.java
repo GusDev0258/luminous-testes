@@ -65,7 +65,7 @@ public class AuthenticationIntegrationTest {
         userRequest.setEmail("email@email");
         userRequest.setPhone("988552233");
         userRequest.setUserName("joao_silva321");
-        userRequest.setPassword("ct010teste");
+        userRequest.setPassword("teste");
         userRequest.setBirthdate(LocalDate.of(2000, 1, 10));
 
         String expectedMessage = "Email already exists.";

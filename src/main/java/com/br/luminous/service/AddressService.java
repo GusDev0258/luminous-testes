@@ -84,7 +84,7 @@ public class AddressService {
 
     }
 
-    private User updateUserAddresses(Long userId, Address address) {
+    public User updateUserAddresses(Long userId, Address address) {
         User user = userService.getUserById(userId);
         var addresses = user.getAddresses();
         addresses.add(address);
