@@ -51,4 +51,14 @@ public class Address {
     @JsonManagedReference
     private EnergyProvider energyProvider;
 
+    @OneToMany(cascade = CascadeType.ALL)
+    @Column(nullable = true)
+    @JsonManagedReference
+    private List<Challenge> remainingChallenges;
+
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @Column(nullable = true)
+    @JsonManagedReference
+    private List<Challenge> completeChallenges;
 }

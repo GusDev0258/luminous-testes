@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
 
 import static org.mockito.Mockito.*;
@@ -41,7 +42,7 @@ class EnergyBillUnitTest {
         file.setId(1L);
         when(addressService.getAddressById(1L)).thenReturn(mockedAddress);
         when(billFileService.getById(1L)).thenReturn(file);
-        when(energyBillService.create(any(), any(), any())).thenReturn(1L);
+        when(energyBillService.create(any(Long.class), any(Long.class), any(EnergyBillRequest.class))).thenReturn(1L);
     }
 
     @Test
@@ -90,14 +91,16 @@ class EnergyBillUnitTest {
         EnergyBillRequest request = new EnergyBillRequest();
         var referenceDate = "2024/10/04";
         var dueDate = "05/13/2024";
-        var referenceDateObject = LocalDate.parse(referenceDate);
-        var dueDateObject = LocalDate.parse(dueDate);
-        request.setReferenceDate(referenceDateObject);
-        request.setDueDate(dueDateObject);
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(200.00);
+        DateTimeException exception = assertThrows(DateTimeException.class, () -> {
+            var referenceDateObject = LocalDate.parse(referenceDate);
+            var dueDateObject = LocalDate.parse(dueDate);
+            request.setReferenceDate(referenceDateObject);
+            request.setDueDate(dueDateObject);
+        });
         var energyBill = energyBillService.create(address.getId(), billFile.getId(), request);
-        assertNull(energyBill);
+        assertNotNull(exception);
     }
 
     @Test
