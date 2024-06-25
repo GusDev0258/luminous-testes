@@ -162,10 +162,11 @@ class EnergyBillUnitTest {
         EnergyBillRequest request = new EnergyBillRequest();
         request.setReferenceDate(LocalDate.of(2024, 04, 10));
         request.setDueDate(LocalDate.of(2024, 05, 10));
-        request.setEnergyConsumptionReais(Double.parseDouble("Devo falhar"));
         request.setEnergyConsumption_kWh(200.00);
-        var energyBill = energyBillService.create(address.getId(), billFile.getId(), request);
-        assertNull(energyBill);
+        NumberFormatException exception = assertThrows(NumberFormatException.class, () -> {
+            request.setEnergyConsumptionReais(Double.parseDouble("Devo falhar"));
+        });
+        assertNotNull(exception);
     }
 
     @Test
@@ -189,9 +190,11 @@ class EnergyBillUnitTest {
         request.setReferenceDate(LocalDate.of(2024, 04, 10));
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(100.00);
-        request.setEnergyConsumption_kWh(Double.parseDouble("Devo falhar"));
+        NumberFormatException exception = assertThrows(NumberFormatException.class, () -> {
+            request.setEnergyConsumption_kWh(Double.parseDouble("Devo falhar"));
+        });
         var energyBill = energyBillService.create(address.getId(), billFile.getId(), request);
-        assertNull(energyBill);
+        assertNotNull(exception);
     }
 
     @Test

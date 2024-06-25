@@ -492,14 +492,14 @@ VALUES (10, 'Testador', '123456789', 'tester', 'email@email',
 
 INSERT INTO address (id, main_address, state, city, cep, street, neighborhood, house_number, input_voltage, user_id,
                      energy_provider_id)
-VALUES (1, true, 'SP', 'São Paulo', '00000-000', 'Avenida Paulista', 'cachoeirinha do grau', 123, 110, 10, 9);
+VALUES (4, true, 'SP', 'São Paulo', '00000-000', 'Avenida Paulista', 'cachoeirinha do grau', 123, 110, 12, 9);
 --            (20, 'São Paulo', '00000-000', 'cachoeirinha do grau', 'Avenida Paulista', 234, 110, 10),
 --            (30, 'São Paulo', '00000-000', 'cachoeirinha do grau', 'Avenida Paulista', 345, 220, 10);
 
 INSERT INTO device (id, name, power, usage_time, address_id)
-VALUES (10, 'Geladeira', 220, '23:59', 1),
-       (11, 'Computador', 1200, '06:00', 1),
-       (12, 'Microondas', 900, '10:00', 1);
+VALUES (10, 'Geladeira', 220, '23:59', 4),
+       (11, 'Computador', 1200, '06:00', 4),
+       (12, 'Microondas', 900, '10:00', 4);
 
 INSERT INTO tariff_flag (month, flag_type)
 VALUES ('2023-02-01', 0),
@@ -784,8 +784,9 @@ VALUES (1001, 5.2763, 2.6381, '2023-03-31', 10),
        (1192, 9, 4.5, '2023-06-02', 12);
 
 INSERT INTO bill_file (id, url, name, size)
-VALUES (1, '/uploads/', 'fatura_energia', 40);
+VALUES (4, '/uploads/', 'fatura_energia', 40),
+(5, '/uploads/', 'fatura_energia_2', 60);
 
 INSERT INTO energy_bill (id,reference_date, due_date, energy_consumption_reais, energy_consumption_k_wh, address_id,
                          bill_file_id)
-VALUES (1,'2024-04-10', '2024-05-10', 100.00, 200.00, 1, 1);
+VALUES (8,'2024-04-10', '2024-05-10', 100.00, 200.00, 4, 4);

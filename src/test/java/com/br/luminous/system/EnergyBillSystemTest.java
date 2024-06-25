@@ -19,13 +19,15 @@ import static org.junit.jupiter.api.Assertions.*;
 public class EnergyBillSystemTest {
     private WebDriver driver;
     private WebDriverWait wait;
+    private final String currentTestAddressId = "4";
+    private final String currentTestFrontEndUrl = "http://localhost:3000/";
     @BeforeEach
     void setup() {
         WebDriverManager.firefoxdriver().setup();
 
         driver = new FirefoxDriver();
         wait = new WebDriverWait(driver, Duration.ofSeconds(10L));
-        driver.get("http://localhost:3000/login");
+        driver.get(this.currentTestFrontEndUrl + "login");
 
         WebElement emailInput = driver.findElement(By.name("email"));
         WebElement passwordInput = driver.findElement(By.name("password"));
@@ -36,10 +38,12 @@ public class EnergyBillSystemTest {
         WebElement submitButton = driver.findElement(By.className("primary-button"));
         submitButton.click();
 
+        wait.until(ExpectedConditions.urlToBe(this.currentTestFrontEndUrl + "login/tip"));
+
         WebElement continueButton = driver.findElement(By.className("continue"));
         continueButton.click();
 
-        WebElement address = driver.findElement(By.id("1"));
+        WebElement address = driver.findElement(By.id(this.currentTestAddressId));
         address.click();
 
         WebElement bills = driver.findElement(By.className("integration-card")).findElement(By.tagName("a"));
@@ -75,7 +79,7 @@ public class EnergyBillSystemTest {
         WebElement btnFatura = driver.findElement(By.className("btn-fatura"));
         btnFatura.click();
 
-        String registeredUrl ="http://localhost:3000/energyBill/?address=1";
+        String registeredUrl = this.currentTestFrontEndUrl + "energyBill/?address=" + this.currentTestAddressId;
         wait.until(ExpectedConditions.urlToBe(registeredUrl));
         assertEquals(driver.getCurrentUrl(), registeredUrl);
         List<WebElement> finalListItems = wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(By.cssSelector(
@@ -104,7 +108,7 @@ public class EnergyBillSystemTest {
 
         WebElement btnFatura = driver.findElement(By.className("btn-fatura"));
         btnFatura.click();
-        String registeredUrl ="http://localhost:3000/energyBill/?address=1";
+        String registeredUrl = this.currentTestFrontEndUrl + "energyBill/?address=" + this.currentTestAddressId;
         assertNotEquals(driver.getCurrentUrl(), registeredUrl);
     }
 }

@@ -40,7 +40,7 @@ public class EnergyBillIntegrationTest {
     void shouldNotCreateAEnergyBillWithInvalidAddressId() {
         //Arrange
         int addressId = 0;
-        int billFileId = 1;
+        int billFileId = 4;
         String expectedMessage = "Address not found.";
         EnergyBillRequest request = new EnergyBillRequest();
         request.setReferenceDate(LocalDate.of(2024, 04, 10));
@@ -69,7 +69,7 @@ public class EnergyBillIntegrationTest {
     @Test
     void shouldNotCreateAEnergyBillWithInvalidBillFileId() {
         //Arrange
-        int addressId = 1;
+        int addressId = 4;
         int billFileId = 0;
         String expectedMessage = "Bill File was not found";
         EnergyBillRequest request = new EnergyBillRequest();
@@ -99,8 +99,8 @@ public class EnergyBillIntegrationTest {
     @Test
     void shouldCreateAEnergyBill() {
         //Arrange
-        int addressId = 1;
-        int billFileId = 1;
+        int addressId = 4;
+        int billFileId = 4;
         int responseId = 1;
         String expectedMessage = "Energy bill created";
         EnergyBillRequest request = new EnergyBillRequest();
@@ -156,7 +156,7 @@ public class EnergyBillIntegrationTest {
 
     @Test
     void shouldUpdateAEnergyBill() {
-        int requestId = 1;
+        int requestId = 8;
         String expectedMessage = "Energy Bill updated";
         EnergyBillRequest request = new EnergyBillRequest();
         request.setReferenceDate(LocalDate.of(2024, 04, 10));
@@ -215,7 +215,7 @@ public class EnergyBillIntegrationTest {
 
     @Test
     void shouldDeleteAEnergyBill(){
-        int requestId = 1;
+        int requestId = 8;
         String expectedMessage = "EnergyBill Deleted";
         RestAssured.given()
                 .log()
@@ -237,7 +237,7 @@ public class EnergyBillIntegrationTest {
     //RT 010 - Get
     @Test
     void shouldGetAEnergyBill(){
-        int requestId = 1;
+        int requestId = 8;
         String expectedMesasge = "Energy Bill found";
         RestAssured.given()
                 .log()
