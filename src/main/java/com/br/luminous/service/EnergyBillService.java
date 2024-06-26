@@ -22,7 +22,7 @@ public class EnergyBillService {
     private BillFileService billFileService;
     private EnergyBillRequestToEntity energyBillRequestToEntity;
     private EnergyBillToResponse energyBillToResponse;
-    private AddressRepository addressRepository;
+
 
 
     public Long create(Long address_id, Long billFile_id, EnergyBillRequest energyBillRequest) {
