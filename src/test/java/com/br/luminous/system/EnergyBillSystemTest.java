@@ -46,7 +46,7 @@ public class EnergyBillSystemTest {
         WebElement address = driver.findElement(By.id(this.currentTestAddressId));
         address.click();
 
-        WebElement bills = driver.findElement(By.className("integration-card")).findElement(By.tagName("a"));
+        WebElement bills = driver.findElement(By.id("bills")).findElement(By.tagName("a"));
         bills.click();
     }
 

@@ -12,6 +12,8 @@ import org.mockito.MockitoAnnotations;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -23,6 +25,7 @@ public class ChallengeServiceUnitTest {
     @Mock
     AddressRepository addressRepository;
     ChallengeService challengeService;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
