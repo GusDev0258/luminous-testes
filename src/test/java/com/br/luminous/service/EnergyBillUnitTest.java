@@ -7,7 +7,6 @@ import com.br.luminous.mapper.EnergyBillRequestToEntity;
 import com.br.luminous.mapper.EnergyBillToResponse;
 import com.br.luminous.models.EnergyBillRequest;
 import com.br.luminous.repository.EnergyBillRepository;
-import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -18,8 +17,9 @@ import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 
 
 class EnergyBillUnitTest {
@@ -51,7 +51,6 @@ class EnergyBillUnitTest {
         var energyBill = new EnergyBill();
         energyBill.setId(1L);
         when(energyBillRepository.save(any(EnergyBill.class))).thenReturn(energyBill);
-        //Refatorar para ter as dependências mockadas.
     }
 
     @Test
@@ -63,8 +62,11 @@ class EnergyBillUnitTest {
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(200.00);
-        var id = energyBillService.create(address.getId(), billFile.getId(), request);
-        assertNull(id, "Should not create a bill with the same month on due date and reference date");
+        Exception exception = assertThrows(Exception.class, () -> {
+            energyBillService.create(address.getId(), billFile.getId(), request);
+        });
+        assertEquals("As datas de vencimento e referência da fatura de energia não devem ser iguais",
+                exception.getMessage());
     }
 
     @Test
@@ -76,12 +78,15 @@ class EnergyBillUnitTest {
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(200.00);
-        var id = energyBillService.create(address.getId(), billFile.getId(), request);
-        assertNull(id, "Should not create a bill with reference date before two months from due date");
+        Exception exception = assertThrows(Exception.class, () -> {
+            energyBillService.create(address.getId(), billFile.getId(), request);
+        });
+        assertEquals("A data de referência de uma fatura de energia não deve ter dois meses de referência com a de vencimento",
+                exception.getMessage());
     }
 
     @Test
-    void shouldNotCreateAEnergyBillWithReferenceDateMonthGreaterThanDueDateMonth(){
+    void shouldNotCreateAEnergyBillWithReferenceDateMonthGreaterThanDueDateMonth() {
         var address = addressService.getAddressById(1L);
         var billFile = billFileService.getById(1L);
         EnergyBillRequest request = new EnergyBillRequest();
@@ -89,8 +94,11 @@ class EnergyBillUnitTest {
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(200.00);
-        var id = energyBillService.create(address.getId(), billFile.getId(), request);
-        assertNull(id, "Should not create a bill with reference date greater than due date");
+        Exception exception = assertThrows(Exception.class, () -> {
+            energyBillService.create(address.getId(), billFile.getId(), request);
+        });
+        assertEquals("A data de referência de uma fatura de energia não deve ser maior do que a data de vencimento",
+                exception.getMessage());
     }
 
     @Test
@@ -121,8 +129,11 @@ class EnergyBillUnitTest {
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(200.00);
-        var id = energyBillService.create(address.getId(), billFile.getId(), request);
-        assertNull(id, "Should not create a bill with empty reference date");
+        Exception exception = assertThrows(Exception.class, () -> {
+            energyBillService.create(address.getId(), billFile.getId(), request);
+        });
+        assertEquals("A data de referência da fatura de energia não pode ser nula ou vazia",
+                exception.getMessage());
     }
 
     @Test
@@ -134,8 +145,11 @@ class EnergyBillUnitTest {
         request.setDueDate(null);
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(200.00);
-        var id = energyBillService.create(address.getId(), billFile.getId(), request);
-        assertNull(id, "Should not create a bill with empty due date");
+        Exception exception = assertThrows(Exception.class, () -> {
+            energyBillService.create(address.getId(), billFile.getId(), request);
+        });
+        assertEquals("A data de vencimento da fatura de energia não pode ser nula ou vazia",
+                exception.getMessage());
     }
 
     @Test
@@ -147,8 +161,11 @@ class EnergyBillUnitTest {
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(null);
         request.setEnergyConsumption_kWh(200.00);
-        var id = energyBillService.create(address.getId(), billFile.getId(), request);
-        assertNull(id, "Should not create a bill with empty consumption in reais");
+        Exception exception = assertThrows(Exception.class, () -> {
+            energyBillService.create(address.getId(), billFile.getId(), request);
+        });
+        assertEquals("O consumo em reais da fatura de energia não pode ser nulo ou vazio",
+                exception.getMessage());
     }
 
     @Test
@@ -160,8 +177,11 @@ class EnergyBillUnitTest {
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(-40.00);
         request.setEnergyConsumption_kWh(200.00);
-        var id = energyBillService.create(address.getId(), billFile.getId(), request);
-        assertNull(id, "Should not create a bill with negative consumption in reais");
+        Exception exception = assertThrows(Exception.class, () -> {
+            energyBillService.create(address.getId(), billFile.getId(), request);
+        });
+        assertEquals("O consumo em reais da fatura de energia não pode ser negativo",
+                exception.getMessage());
     }
 
     @Test
@@ -185,8 +205,11 @@ class EnergyBillUnitTest {
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(-300.00);
-        var id = energyBillService.create(address.getId(), billFile.getId(), request);
-        assertNull(id, "Should not create a bill with negative consumption in kWh");
+        Exception exception = assertThrows(Exception.class, () -> {
+            energyBillService.create(address.getId(), billFile.getId(), request);
+        });
+        assertEquals("O consumo em kWh da fatura de energia não pode ser negativo",
+                exception.getMessage());
     }
 
     @Test
@@ -205,7 +228,7 @@ class EnergyBillUnitTest {
     }
 
     @Test
-    void shouldNotCreateAEnergyBillWithEmptyKWhConsumption()  {
+    void shouldNotCreateAEnergyBillWithEmptyKWhConsumption() {
         var address = addressService.getAddressById(1L);
         var billFile = billFileService.getById(1L);
         EnergyBillRequest request = new EnergyBillRequest();
@@ -213,8 +236,11 @@ class EnergyBillUnitTest {
         request.setDueDate(LocalDate.of(2024, 05, 10));
         request.setEnergyConsumptionReais(100.00);
         request.setEnergyConsumption_kWh(null);
-        var id = energyBillService.create(address.getId(), billFile.getId(), request);
-        assertNull(id, "Should not create a bill with empty consumption in kWh");
+        Exception exception = assertThrows(Exception.class, () -> {
+            energyBillService.create(address.getId(), billFile.getId(), request);
+        });
+        assertEquals("O consumo em kWh da fatura de energia não pode ser nulo ou vazio",
+                exception.getMessage());
     }
 
     @Test

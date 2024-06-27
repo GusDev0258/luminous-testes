@@ -7,6 +7,7 @@ import com.br.luminous.repository.AddressRepository;
 import com.br.luminous.repository.ChallengeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -24,12 +25,12 @@ public class ChallengeServiceUnitTest {
     ChallengeRepository challengeRepository;
     @Mock
     AddressRepository addressRepository;
+    @InjectMocks
     ChallengeService challengeService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        this.challengeService = new ChallengeService(challengeRepository, addressRepository);
         Address address = new Address();
         address.setId(1L);
         address.setRemainingChallenges(new ArrayList<>());
