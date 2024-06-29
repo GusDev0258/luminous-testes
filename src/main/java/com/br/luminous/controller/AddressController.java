@@ -3,6 +3,7 @@ package com.br.luminous.controller;
 import com.br.luminous.entity.Address;
 import com.br.luminous.models.AddressRequest;
 import com.br.luminous.models.AddressResponse;
+import com.br.luminous.models.ApiResponse;
 import com.br.luminous.service.AddressService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,11 +24,11 @@ public class AddressController {
         return addressService.getAddressByUserId(userId);
     }
 
-
     @PostMapping("/user/{id}")
-    public ResponseEntity<Long> createAddress(@PathVariable Long id, @RequestBody AddressRequest address){
-        Long response = addressService.create(id, address);
-        return new ResponseEntity<Long>(response, HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<Long>> createAddress(@PathVariable Long id, @RequestBody AddressRequest address){
+        Long idCreated = addressService.create(id, address);
+        var response = new ApiResponse<Long>(true, "Address created.", idCreated);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("{id}/user/{userId}")

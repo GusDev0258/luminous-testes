@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface DeviceRepository extends CrudRepository<Device, Long> {
 
     Optional <List<Device>> findByAddressId(Long addressId);
+    Optional <Device> findByAddressIdAndName(Long addressId, String deviceName);
 }

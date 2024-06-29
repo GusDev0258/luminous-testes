@@ -1,5 +1,6 @@
 package com.br.luminous.controller;
 import com.br.luminous.entity.Device;
+import com.br.luminous.models.ApiResponse;
 import com.br.luminous.models.DeviceRequest;
 import com.br.luminous.models.DeviceResponse;
 import com.br.luminous.service.DeviceService;
@@ -24,9 +25,10 @@ public class DeviceController {
     }
 
     @PostMapping("/address/{addressId}")
-    public ResponseEntity<Long> createDevice(@RequestBody DeviceRequest device, @PathVariable Long addressId){
-        Long response = deviceService.create(device, addressId);
-        return new ResponseEntity<Long>(response, HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<Long>> createDevice(@RequestBody DeviceRequest device, @PathVariable Long addressId){
+        Long id = deviceService.create(device, addressId);
+        var response = new ApiResponse<Long>(true, "Device created.", id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping(value = "{id}/address/{addressId}")

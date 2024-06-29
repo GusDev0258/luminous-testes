@@ -1,6 +1,5 @@
 package com.br.luminous.service;
 
-import com.br.luminous.entity.EnergyBill;
 import com.br.luminous.entity.EnergyProvider;
 import com.br.luminous.exceptions.UserNotFoundException;
 import com.br.luminous.models.AddressRequest;
@@ -10,13 +9,13 @@ import com.br.luminous.entity.User;
 import com.br.luminous.exceptions.AddressNotFoundException;
 import com.br.luminous.mapper.AddressRequestToEntity;
 import com.br.luminous.repository.AddressRepository;
-import com.br.luminous.repository.EnergyBillRepository;
 import com.br.luminous.repository.EnergyProviderRepository;
 import com.br.luminous.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +30,16 @@ public class AddressService {
     private EnergyProviderRepository energyProviderRepository;
 
     public Long create(Long userId, AddressRequest addressRequest){
+        if (addressRequest.getNickname() == null || addressRequest.getNickname().trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid address name.");
+        }
+        if (addressRequest.getCep() == null || !addressRequest.getCep().matches("\\d{5}-\\d{3}")) {
+            throw new IllegalArgumentException("Invalid address CEP.");
+        }
+        if (addressRequest.getInputVoltage() <= 0 || addressRequest.getInputVoltage() > 240) {
+            throw new IllegalArgumentException("Invalid address input voltage.");
+        }
+
         var address = addressRequestToEntity.mapper(addressRequest);
         var user = updateUserAddresses(userId, address);
         EnergyProvider energyProvider= energyProviderRepository.getById(addressRequest.getEnergyProviderId());
@@ -86,7 +95,10 @@ public class AddressService {
 
     public User updateUserAddresses(Long userId, Address address) {
         User user = userService.getUserById(userId);
-        var addresses = user.getAddresses();
+        List<Address> addresses = user.getAddresses();
+        if (addresses == null) {
+            addresses = new ArrayList<>();
+        }
         addresses.add(address);
         user.setAddresses(addresses);
         return user;

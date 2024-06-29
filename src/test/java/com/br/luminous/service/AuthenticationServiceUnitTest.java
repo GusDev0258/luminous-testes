@@ -3,11 +3,15 @@ package com.br.luminous.service;
 import com.br.luminous.entity.User;
 import com.br.luminous.exceptions.EmailAlreadyExistsException;
 import com.br.luminous.models.UserRequest;
+import com.br.luminous.repository.TokenRepository;
 import com.br.luminous.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -17,33 +21,48 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class AuthenticationServiceUnitTest {
 
-    @Mock
+    @InjectMocks
     private AuthenticationService authenticationService;
 
     @Mock
     private UserRepository userRepository;
 
     @Mock
+    private TokenRepository tokenRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private AuthenticationManager authenticationManager;
+
+    @Mock
+    private JwtService jwtService;
+
+    @Mock
     private UserService userService;
+
+    @Mock
+    private EmailService emailService;
 
     @BeforeEach
     public void setup() {
         MockitoAnnotations.openMocks(this);
     }
 
-    /*
-     * CT001 - Validar criação de usuário (todas as entradas válidas)
-     */
-    @Test
-    public void shouldCreateAUserGivenAValidUserRequest() {
+    private UserRequest createAValidUserRequest() {
         UserRequest userRequest = new UserRequest();
         userRequest.setName("João Silva");
-        userRequest.setEmail("joao321@hotmail.com");
+        userRequest.setEmail("joao_silva@hotmail.com");
         userRequest.setPhone("988552233");
         userRequest.setUserName("joao_silva321");
-        userRequest.setPassword("ct001teste");
+        userRequest.setPassword("teste");
         userRequest.setBirthdate(LocalDate.of(2000, 1, 10));
 
+        return userRequest;
+    }
+
+    public User createMockUser(UserRequest userRequest) {
         User mockUser = new User();
         mockUser.setId(1L);
         mockUser.setName(userRequest.getName());
@@ -52,8 +71,19 @@ public class AuthenticationServiceUnitTest {
         mockUser.setUserName(userRequest.getUserName());
         mockUser.setPassword(userRequest.getPassword());
         mockUser.setBirthdate(userRequest.getBirthdate());
+        return mockUser;
+    }
 
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+    /*
+     * CT001 - Validar criação de usuário (todas as entradas válidas)
+     */
+    @Test
+    public void shouldCreateAUserGivenAValidUserRequest() {
+        // Arrange
+        UserRequest userRequest = createAValidUserRequest();
+        User mockUser = createMockUser(userRequest);
+
+        when(userRepository.save((any(User.class)))).thenAnswer(invocation -> {
             User userToSave = invocation.getArgument(0);
             userToSave.setId(1L);
             return userToSave;
@@ -61,9 +91,11 @@ public class AuthenticationServiceUnitTest {
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
 
+        // Act
         Long userId = authenticationService.register(userRequest);
         User userCreated = userRepository.findById(userId).orElse(null);
 
+        // Assert
         assertNotNull(userCreated, "O usuário não foi cadastrado no sistema!");
         assertEquals(userRequest.getName(), userCreated.getName());
         assertEquals(userRequest.getEmail(), userCreated.getEmail());
@@ -71,9 +103,6 @@ public class AuthenticationServiceUnitTest {
         assertEquals(userRequest.getUserName(), userCreated.getUserName());
         assertEquals(userRequest.getPassword(), userCreated.getPassword());
         assertEquals(userRequest.getBirthdate(), userCreated.getBirthdate());
-
-        verify(userRepository, times(1)).save(any(User.class));
-        verify(userRepository, times(1)).findById(1L);
     }
 
     /*
@@ -81,42 +110,30 @@ public class AuthenticationServiceUnitTest {
      */
     @Test
     public void shouldNotCreateAUserGivenADuplicatedEmail() {
-        UserRequest firstUserRequest = new UserRequest();
-        firstUserRequest.setName("João Silva");
-        firstUserRequest.setEmail("joao321@hotmail.com");
-        firstUserRequest.setPhone("988552233");
-        firstUserRequest.setUserName("joao_silva321");
-        firstUserRequest.setPassword("ct002teste");
-        firstUserRequest.setBirthdate(LocalDate.of(2000, 1, 10));
+        // Arrange
+        UserRequest userRequest = createAValidUserRequest();
+        userRequest.setEmail("joao321@hotmail.com");
+        userRequest.setPassword("password");
 
-        UserRequest duplicatedUserRequest = new UserRequest();
-        duplicatedUserRequest.setName("João Gomes");
-        duplicatedUserRequest.setEmail("joao321@hotmail.com");
-        duplicatedUserRequest.setPhone("983182572");
-        duplicatedUserRequest.setUserName("gomezinhojoao");
-        duplicatedUserRequest.setPassword("ct002teste");
-        duplicatedUserRequest.setBirthdate(LocalDate.of(2002, 3, 30));
+        doThrow(new EmailAlreadyExistsException())
+                .when(userService)
+                .checkEmailAlreadyExists(userRequest.getEmail());
 
-        User existingUser = new User();
-        existingUser.setId(1L);
-        existingUser.setName(firstUserRequest.getName());
-        existingUser.setEmail(firstUserRequest.getEmail());
-        existingUser.setPhone(firstUserRequest.getPhone());
-        existingUser.setUserName(firstUserRequest.getUserName());
-        existingUser.setPassword(firstUserRequest.getPassword());
-        existingUser.setBirthdate(firstUserRequest.getBirthdate());
+        // Act
+        EmailAlreadyExistsException exception = assertThrows(
+                EmailAlreadyExistsException.class,
+                () -> authenticationService.register(userRequest)
+        );
 
-        when(userRepository.findByEmail("joao321@hotmail.com")).thenReturn(Optional.of(existingUser));
-
-        Long firstUserId = authenticationService.register(firstUserRequest);
-        Exception exception = assertThrows(EmailAlreadyExistsException.class, () -> {
-            authenticationService.register(duplicatedUserRequest);
-        });
-
+        // Assert
         assertEquals("Email already exists.", exception.getMessage());
-
-        verify(userRepository, times(1)).save(any(User.class));
-        verify(userRepository, times(2)).findByEmail("joao321@hotmail.com");
+        verify(userService, times(1)).checkEmailAlreadyExists(userRequest.getEmail());
+        verifyNoInteractions(userRepository);
+        verifyNoInteractions(tokenRepository);
+        verifyNoInteractions(passwordEncoder);
+        verifyNoInteractions(authenticationManager);
+        verifyNoInteractions(jwtService);
+        verifyNoInteractions(emailService);
     }
 
     /*
@@ -124,21 +141,19 @@ public class AuthenticationServiceUnitTest {
      */
     @Test
     public void shouldNotCreateAUserGivenAnInvalidName() {
-        UserRequest userRequest = new UserRequest();
+        // Arrange
+        UserRequest userRequest = createAValidUserRequest();
         userRequest.setName(" ");
-        userRequest.setEmail("joao_silva@hotmail.com");
-        userRequest.setPhone("988552233");
-        userRequest.setUserName("joaosilva321");
-        userRequest.setPassword("ct003teste");
-        userRequest.setBirthdate(LocalDate.of(2000, 1, 10));
 
-        Exception exception = assertThrows(Exception.class, () -> {
+        // Act and Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             authenticationService.register(userRequest);
         });
 
-        assertEquals("Invalid name", exception.getMessage());
-
+        // Arrange
+        assertEquals("Invalid name.", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
+        verify(userService, never()).checkEmailAlreadyExists(anyString());
     }
 
     /*
@@ -146,20 +161,17 @@ public class AuthenticationServiceUnitTest {
      */
     @Test
     public void shouldNotCreateAUserGivenAnInvalidEmail() {
-        UserRequest userRequest = new UserRequest();
-        userRequest.setName("João da Silva");
-        userRequest.setEmail("joao_silva");  // Email inválido
-        userRequest.setPhone("988552233");
-        userRequest.setUserName("joaosilva000");
-        userRequest.setPassword("ct004teste");
-        userRequest.setBirthdate(LocalDate.of(2000, 1, 10));
+        // Arrange
+        UserRequest userRequest = createAValidUserRequest();
+        userRequest.setEmail("joao_silva");
 
-        Exception exception = assertThrows(Exception.class, () -> {
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             authenticationService.register(userRequest);
         });
 
-        assertEquals("Invalid email", exception.getMessage());
-
+        // Assert
+        assertEquals("Invalid e-mail.", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -168,20 +180,14 @@ public class AuthenticationServiceUnitTest {
     */
     @Test
     public void shouldNotCreateAUserGivenAnInvalidUsername() {
-        UserRequest userRequest = new UserRequest();
-        userRequest.setName("João da Silva");
-        userRequest.setEmail("joaosilva@gmail.com");
-        userRequest.setPhone("988552233");
-        userRequest.setUserName("joao silva");  // Username inválido (contém espaço)
-        userRequest.setPassword("ct005teste");
-        userRequest.setBirthdate(LocalDate.of(2000, 1, 10));
+        UserRequest userRequest = createAValidUserRequest();
+        userRequest.setUserName("joao silva");
 
         Exception exception = assertThrows(Exception.class, () -> {
             authenticationService.register(userRequest);
         });
 
-        assertEquals("Invalid username", exception.getMessage());
-
+        assertEquals("Invalid username.", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
 }

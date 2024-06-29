@@ -8,12 +8,14 @@ import com.br.luminous.models.AddressRequest;
 import com.br.luminous.repository.AddressRepository;
 import com.br.luminous.repository.EnergyProviderRepository;
 import com.br.luminous.repository.UserRepository;
-import com.github.dockerjava.core.dockerfile.DockerfileStatement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -21,38 +23,41 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class AddressServiceUnitTest {
 
-    private AddressService addressService;
-
     @Mock
     private AddressRepository addressRepository;
 
     @Mock
-    private UserService userService;
+    private AddressRequestToEntity addressRequestToEntity;
 
     @Mock
     private UserRepository userRepository;
 
     @Mock
-    private EnergyProviderService energyProviderService;
+    private UserService userService;
 
     @Mock
     private EnergyProviderRepository energyProviderRepository;
 
+    @InjectMocks
+    private AddressService addressService;
+
     @BeforeEach
     public void setup() {
         MockitoAnnotations.openMocks(this);
+    }
 
-        addressService = new AddressService(addressRepository, new AddressRequestToEntity(), userRepository, userService, energyProviderRepository);
-
-        EnergyProvider mockedEnergyProvider = new EnergyProvider();
-        mockedEnergyProvider.setId(1L);
-        when(energyProviderService.getEnergyProviderById(1L)).thenReturn(mockedEnergyProvider);
-
-        User mockedUser = new User();
-        mockedUser.setId(1L);
-        when(userService.getUserById(1L)).thenReturn(mockedUser);
-
-        when(addressService.updateUserAddresses(mockedUser.getId(), null)).thenReturn(mockedUser);
+    private AddressRequest createValidAddressRequest() {
+        AddressRequest addressRequest = new AddressRequest();
+        addressRequest.setCity("São Paulo");
+        addressRequest.setCep("01200-000");
+        addressRequest.setHouseNumber(203);
+        addressRequest.setInputVoltage(110);
+        addressRequest.setStreet("Rua Cafelândia");
+        addressRequest.setNeighborhood("Sumaré");
+        addressRequest.setState("SP");
+        addressRequest.setNickname("Casa da Mãe");
+        addressRequest.setMainAddress(false);
+        return addressRequest;
     }
 
     /*
@@ -60,26 +65,23 @@ public class AddressServiceUnitTest {
     */
     @Test
     public void shouldNotCreateAddressGivenABlankAddressName() {
-        var energyProvider = energyProviderService.getEnergyProviderById(1L);
-
-        AddressRequest addressRequest = new AddressRequest();
-        addressRequest.setCity("São Paulo");
-        addressRequest.setCep("01200-000");
-        addressRequest.setHouseNumber(203);
-        addressRequest.setInputVoltage(110);
-        addressRequest.setStreet("Rua Cafelândia");
-        addressRequest.setNeighborhood("Sumaré");
-        addressRequest.setEnergyProviderId(energyProvider.getId());
-        addressRequest.setState("SP");
+        // Arrange
+        AddressRequest addressRequest = createValidAddressRequest();
         addressRequest.setNickname(" ");
-        addressRequest.setMainAddress(false);
-        User user = userService.getUserById(1L);
+        User user = new User();
+        user.setId(1L);
 
-        Exception exception = assertThrows(Exception.class, () -> {
-            addressService.create(user.getId(), addressRequest);
-        });
+        when(userService.getUserById(1L)).thenReturn(user);
 
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> addressService.create(user.getId(), addressRequest)
+        );
+
+        // Assert
         assertEquals("Invalid address name.", exception.getMessage());
+        verify(addressRepository, never()).save(any(Address.class));
     }
 
     /*
@@ -87,27 +89,23 @@ public class AddressServiceUnitTest {
     */
     @Test
     public void shouldNotCreateAddressGivenAnInvalidCEP() {
-        var energyProvider = energyProviderService.getEnergyProviderById(1L);
+        // Arrange
+        AddressRequest addressRequest = createValidAddressRequest();
+        addressRequest.setCep("ABCDEF-GH");
+        User user = new User();
+        user.setId(1L);
 
-        AddressRequest addressRequest = new AddressRequest();
-        addressRequest.setCity("São Paulo");
-        addressRequest.setCep("ADCDE-FGH");
-        addressRequest.setHouseNumber(203);
-        addressRequest.setInputVoltage(110);
-        addressRequest.setStreet("Rua Cafelândia");
-        addressRequest.setNeighborhood("Sumaré");
-        addressRequest.setEnergyProviderId(energyProvider.getId());
-        addressRequest.setState("SP");
-        addressRequest.setNickname("Casa da Mãe");
-        addressRequest.setMainAddress(false);
+        when(userService.getUserById(1L)).thenReturn(user);
 
-        User user = userService.getUserById(1L);
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> addressService.create(user.getId(), addressRequest)
+        );
 
-        Exception exception = assertThrows(Exception.class, () -> {
-            addressService.create(user.getId(), addressRequest);
-        });
-
+        // Assert
         assertEquals("Invalid address CEP.", exception.getMessage());
+        verify(addressRepository, never()).save(any(Address.class));
     }
 
     /*
@@ -115,27 +113,23 @@ public class AddressServiceUnitTest {
      */
     @Test
     public void shouldNotCreateAddressGivenAnInvalidInputVoltage() {
-        var energyProvider = energyProviderService.getEnergyProviderById(1L);
-
-        AddressRequest addressRequest = new AddressRequest();
-        addressRequest.setCity("São Paulo");
-        addressRequest.setCep("01200-000");
-        addressRequest.setHouseNumber(203);
+        // Arrange
+        AddressRequest addressRequest = createValidAddressRequest();
         addressRequest.setInputVoltage(1000);
-        addressRequest.setStreet("Rua Cafelândia");
-        addressRequest.setNeighborhood("Sumaré");
-        addressRequest.setEnergyProviderId(energyProvider.getId());
-        addressRequest.setState("SP");
-        addressRequest.setNickname("Casa da Mãe");
-        addressRequest.setMainAddress(false);
+        User user = new User();
+        user.setId(1L);
 
-        User user = userService.getUserById(1L);
+        when(userService.getUserById(1L)).thenReturn(user);
 
-        Exception exception = assertThrows(Exception.class, () -> {
-            addressService.create(user.getId(), addressRequest);
-        });
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> addressService.create(user.getId(), addressRequest)
+        );
 
+        // Assert
         assertEquals("Invalid address input voltage.", exception.getMessage());
+        verify(addressRepository, never()).save(any(Address.class));
     }
 
     /*
@@ -143,45 +137,38 @@ public class AddressServiceUnitTest {
      */
     @Test
     public void shouldCreateAddressGivenAValidAddressRequest() {
-        var energyProvider = energyProviderService.getEnergyProviderById(1L);
-
-        AddressRequest addressRequest = new AddressRequest();
-        addressRequest.setCity("São Paulo");
-        addressRequest.setCep("01200-000");
-        addressRequest.setHouseNumber(203);
-        addressRequest.setInputVoltage(110);
-        addressRequest.setStreet("Rua Cafelândia");
-        addressRequest.setNeighborhood("Sumaré");
-        addressRequest.setEnergyProviderId(energyProvider.getId());
-        addressRequest.setState("SP");
-        addressRequest.setNickname("Casa da Mãe");
-        addressRequest.setMainAddress(false);
-        User user = userService.getUserById(1L);
+        // Arrange
+        AddressRequest addressRequest = createValidAddressRequest();
+        User user = new User();
+        user.setId(1L);
+        user.setAddresses(new ArrayList<>());
 
         Address mockAddress = new Address();
-        mockAddress.setCity("São Paulo");
-        mockAddress.setCep("01200-000");
-        mockAddress.setHouseNumber(203);
-        mockAddress.setInputVoltage(110);
-        mockAddress.setStreet("Rua Cafelândia");
-        mockAddress.setNeighborhood("Sumaré");
-        mockAddress.setEnergyProvider(energyProvider);
-        mockAddress.setState("SP");
-        mockAddress.setNickname("Casa da Mãe");
-        mockAddress.setMainAddress(false);
+        mockAddress.setId(1L);
+        mockAddress.setCity(addressRequest.getCity());
+        mockAddress.setCep(addressRequest.getCep());
+        mockAddress.setHouseNumber(addressRequest.getHouseNumber());
+        mockAddress.setInputVoltage(addressRequest.getInputVoltage());
+        mockAddress.setStreet(addressRequest.getStreet());
+        mockAddress.setNeighborhood(addressRequest.getNeighborhood());
+        mockAddress.setState(addressRequest.getState());
+        mockAddress.setNickname(addressRequest.getNickname());
+        mockAddress.setMainAddress(addressRequest.isMainAddress());
         mockAddress.setUser(user);
 
+        when(userService.getUserById(1L)).thenReturn(user);
         when(addressRepository.save(any(Address.class))).thenAnswer(invocation -> {
             Address addressToSave = invocation.getArgument(0);
             addressToSave.setId(1L);
             return addressToSave;
         });
-
         when(addressRepository.findById(1L)).thenReturn(Optional.of(mockAddress));
 
+        // Act
         Long addressId = addressService.create(user.getId(), addressRequest);
         Address addressCreated = addressRepository.findById(addressId).orElse(null);
 
+        // Assert
         assertNotNull(addressCreated, "O endereço não foi cadastrado no sistema!");
         assertEquals(addressRequest.getCep(), addressCreated.getCep());
         assertEquals(addressRequest.getNeighborhood(), addressCreated.getNeighborhood());
@@ -190,12 +177,11 @@ public class AddressServiceUnitTest {
         assertEquals(addressRequest.isMainAddress(), addressCreated.isMainAddress());
         assertEquals(addressRequest.getHouseNumber(), addressCreated.getHouseNumber());
         assertEquals(addressRequest.getInputVoltage(), addressCreated.getInputVoltage());
-        assertEquals(addressRequest.getEnergyProviderId(), addressCreated.getEnergyProvider().getId());
+        assertEquals(addressRequest.getEnergyProviderId(), addressCreated.getEnergyProvider().getId()); // Descomentar se necessário
         assertEquals(addressRequest.getState(), addressCreated.getState());
         assertEquals(addressRequest.getStreet(), addressCreated.getStreet());
 
         verify(addressRepository, times(1)).save(any(Address.class));
         verify(addressRepository, times(1)).findById(1L);
     }
-
 }

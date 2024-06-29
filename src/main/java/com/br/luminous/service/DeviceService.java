@@ -1,8 +1,7 @@
 package com.br.luminous.service;
 import com.br.luminous.entity.Address;
 import com.br.luminous.entity.Device;
-import com.br.luminous.exceptions.DeviceNotFoundException;
-import com.br.luminous.exceptions.AddressNotFoundException;
+import com.br.luminous.exceptions.*;
 import com.br.luminous.mapper.DeviceRequestToEntity;
 import com.br.luminous.models.DeviceRequest;
 import com.br.luminous.models.DeviceResponse;
@@ -35,6 +34,10 @@ public class DeviceService {
         return obj.orElseThrow(DeviceNotFoundException::new);
     }
 
+    public Optional<Device> findByNameAndAddressId(String deviceName, Long addressId) {
+        return deviceRepository.findByAddressIdAndName(addressId, deviceName);
+    }
+
     public void delete (Long id){
         try{
             findDeviceById(id);
@@ -65,12 +68,30 @@ public class DeviceService {
         Address address = updateAddressDevices(addressId, device);
 
         device.setAddress(address);
+
+        Optional<Device> deviceExists = this.findByNameAndAddressId(device.getName(), addressId);
+        if(deviceExists.isPresent()) {
+            throw new DuplicateDeviceException();
+        }
+
+        if(device.getPower() < 0 || device.getPower() > 1500) {
+            throw new DeviceInvalidPower(String.valueOf(device.getPower()));
+        }
+
+        if(device.getUsageTime().getHour() == 0) {
+            throw new DeviceInvalidUsageTime(device.getUsageTime());
+        }
+
         Device response = deviceRepository.save(device);
         deviceRepository.save(device);
         return response.getId();
     }
 
     private void updateData(Device device, Device request) {
+        if(request.getName().trim().equals("")) {
+            throw new BlankNameException();
+        }
+
         device.setName(request.getName());
         device.setPower(request.getPower());
         device.setUsageTime(request.getUsageTime());

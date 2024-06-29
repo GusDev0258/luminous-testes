@@ -1,8 +1,11 @@
 package com.br.luminous.controller;
 
+import com.br.luminous.models.ApiResponse;
 import com.br.luminous.models.ReportResponse;
 import com.br.luminous.service.ReportService;
+import javassist.NotFoundException;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,9 +22,10 @@ public class ReportController {
     private ReportService reportService;
 
     @GetMapping("/address/{addressId}")
-    public ResponseEntity<List<ReportResponse>> getReport(@PathVariable Long addressId){
-      List<ReportResponse> reportResponses = reportService.getReport(addressId);
-        return ResponseEntity.ok(reportResponses);
+    public ResponseEntity<ApiResponse<List<ReportResponse>>> getReport(@PathVariable Long addressId) {
+        List<ReportResponse> reportResponses = reportService.getReport(addressId);
+        var response = new ApiResponse<List<ReportResponse>>(true, "Reports", reportResponses);
+        return ResponseEntity.ok().body(response);
     }
 
 }

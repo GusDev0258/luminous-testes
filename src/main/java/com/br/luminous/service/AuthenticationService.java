@@ -28,10 +28,19 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserService userService;
-
     private final EmailService emailService;
 
     public Long register(UserRequest userRequest) {
+        if (!isValidName(userRequest)) {
+            throw new IllegalArgumentException("Invalid name.");
+        }
+        if(!isValidEmail(userRequest)) {
+            throw new IllegalArgumentException("Invalid e-mail.");
+        }
+        if(!isValidUsername(userRequest)) {
+            throw new IllegalArgumentException("Invalid username.");
+        }
+
         try {
             userService.checkEmailAlreadyExists(userRequest.getEmail());
             var user = new User();
@@ -118,5 +127,17 @@ public class AuthenticationService {
         }else{
             throw new IllegalArgumentException();
         }
+    }
+
+    public boolean isValidName(UserRequest userRequest) {
+        return !(userRequest.getName() == null || userRequest.getName().trim().isEmpty());
+    }
+
+    public boolean isValidEmail(UserRequest userRequest) {
+        return userRequest.getEmail().contains("@");
+    }
+
+    public boolean isValidUsername(UserRequest userRequest) {
+        return !userRequest.getUserName().trim().contains(" ");
     }
 }
