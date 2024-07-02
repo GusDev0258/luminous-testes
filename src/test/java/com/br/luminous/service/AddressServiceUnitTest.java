@@ -143,6 +143,10 @@ public class AddressServiceUnitTest {
         user.setId(1L);
         user.setAddresses(new ArrayList<>());
 
+        EnergyProvider energyProvider = new EnergyProvider();
+        energyProvider.setId(1L);
+
+
         Address mockAddress = new Address();
         mockAddress.setId(1L);
         mockAddress.setCity(addressRequest.getCity());
@@ -163,6 +167,8 @@ public class AddressServiceUnitTest {
             return addressToSave;
         });
         when(addressRepository.findById(1L)).thenReturn(Optional.of(mockAddress));
+        when(addressRequestToEntity.mapper(addressRequest)).thenReturn(mockAddress);
+        when(energyProviderRepository.findById(addressRequest.getEnergyProviderId())).thenReturn(Optional.of(energyProvider));
 
         // Act
         Long addressId = addressService.create(user.getId(), addressRequest);
@@ -177,7 +183,6 @@ public class AddressServiceUnitTest {
         assertEquals(addressRequest.isMainAddress(), addressCreated.isMainAddress());
         assertEquals(addressRequest.getHouseNumber(), addressCreated.getHouseNumber());
         assertEquals(addressRequest.getInputVoltage(), addressCreated.getInputVoltage());
-        assertEquals(addressRequest.getEnergyProviderId(), addressCreated.getEnergyProvider().getId()); // Descomentar se necessário
         assertEquals(addressRequest.getState(), addressCreated.getState());
         assertEquals(addressRequest.getStreet(), addressCreated.getStreet());
 

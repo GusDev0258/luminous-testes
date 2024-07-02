@@ -2,6 +2,7 @@ package com.br.luminous.service;
 
 import com.br.luminous.entity.Address;
 import com.br.luminous.exceptions.AddressNotFoundException;
+import com.br.luminous.exceptions.EmptyReportException;
 import com.br.luminous.models.ReportResponse;
 import com.br.luminous.repository.AddressRepository;
 import com.br.luminous.repository.ConsumptionRepository;
@@ -20,7 +21,7 @@ public class ReportService {
     public ConsumptionRepository consumptionRepository;
     public AddressRepository addressRepository;
 
-    public List<ReportResponse> getReport(Long addressId) {
+    public List<ReportResponse> getReport(Long addressId) throws EmptyReportException {
         Optional<Address> address = addressRepository.findById(addressId);
 
         if(address.isEmpty()) {
@@ -38,6 +39,10 @@ public class ReportService {
             reportResponse.setEnergyConsumptionKWh(projection.getEnergyConsumptionKWh());
             reportResponse.setEnergyConsumptionReais(projection.getEnergyConsumptionReais());
             reportResponses.add(reportResponse);
+        }
+
+        if(reportResponses.isEmpty()) {
+            throw new EmptyReportException();
         }
 
         return reportResponses;

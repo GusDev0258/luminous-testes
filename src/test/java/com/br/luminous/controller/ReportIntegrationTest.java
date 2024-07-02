@@ -73,7 +73,7 @@ public class ReportIntegrationTest {
         addressRequest.setNeighborhood("Sumaré");
         addressRequest.setEnergyProviderId(1L);
         addressRequest.setState("SP");
-        addressRequest.setNickname(" ");
+        addressRequest.setNickname("Minha casa");
         addressRequest.setMainAddress(false);
 
         //Act - cria endereço
@@ -103,8 +103,9 @@ public class ReportIntegrationTest {
                 .then()
                 .log().all()
                 .statusCode(200)
-                .body("message", Matchers.equalTo("Address not found."))
-                .body("returned", Matchers.equalTo("An error happened"));
+                .body("success", Matchers.equalTo(false))
+                .body("message", Matchers.equalTo("There is no data to show in the report."))
+                .body("data", Matchers.equalTo(null));
     }
 
 }
